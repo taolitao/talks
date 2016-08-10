@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
             //exit(1);
             continue;
         }
-        createThread(connection, client);
+        getInfoAndCreateThread(connection, client);
     }
     close(sock_descriptor);
     return 0;

@@ -8,14 +8,18 @@
 struct sock_token {
     int connection; //socket file descriptor
     struct sockaddr_in *client; //current connected client
+    time_t *last_time; //last connect time
+    pthread_mutex_t *time_lock; //lock
 };
 
 struct sock_time {
-    pthread_mutex_t *time_lock; //lock
-    time_t *last_time; //last connect time
+    //pthread_mutex_t *time_lock; //lock
+    //time_t *last_time; //last connect time
+    pthread_t *heartbeat;
+    struct sock_token *token; //sock_token info
 };
 
-void createThread(int connection, struct sockaddr_in *client); //for every connected client
+void getInfoAndCreateThread(int connection, struct sockaddr_in *client); //for every connected client
 
 
 void *heartbeatThread(void *arg); //every connected client, transfer tcp data
