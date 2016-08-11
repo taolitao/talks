@@ -10,12 +10,19 @@
 #include <string.h>
 #include <stdlib.h>
 #include "sock_thread.h"
+#include "m_log.h"
 
 #define debug(format, args...) fprintf(stderr, format, ##args)
 
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
+    FILE *log_fs;
+    if (argc > 1)
+        log_fs = fopen(argv[1], "w+");
+    else
+        log_fs = fopen("./server.log", "a+");
 
     int sock_descriptor;
     extern int errno;
@@ -47,15 +54,19 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         client = malloc(sizeof(struct sockaddr_in));
+        m_log("client", sizeof(struct sockaddr_in), log_fs, 1);
+
         int connection = accept(sock_descriptor, (struct sockaddr*)client, &len);
         if (connection < 0) {
             perror("accept error\n");
+            m_log("client", sizeof(struct sockaddr_in), log_fs, 0);
             free(client);
-            //exit(1);
             continue;
         }
-        getInfoAndCreateThread(connection, client);
+        getInfoAndCreateThread(connection, client, log_fs);
     }
+
+    fclose(log_fs);
     close(sock_descriptor);
     return 0;
 }
