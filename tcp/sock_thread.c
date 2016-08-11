@@ -104,31 +104,39 @@ void *heartbeatThread(void *arg)
 {
     debug("tcpThread\n");
 
-    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
     struct sock_token *token = (struct sock_token *)arg;
     char buff[1024];
     int length;
 
+    debug("--1\n");
 
     while (1) {
+        debug("--1.1\n");
+        pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
         pthread_testcancel();
         length = recv(token->connection, buff, sizeof(buff), 0);
         pthread_testcancel();
+        pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+        debug("--2\n");
+        debug("length is %d\n", length);
         if (length == -1) {
             debug("recv failed\n");
             break;
         }
+        debug("--3\n");
         pthread_mutex_lock(token->time_lock);
         *(token->last_time) = time(0);
         pthread_mutex_unlock(token->time_lock);
         //if (strcmp(buff, "exit\n") == 0) break;
-        if (length == 0) continue;
+        if (length == 0) debug("empty\n");
+        debug("--4\n");
         debug("from: %s\n", inet_ntoa(token->client->sin_addr));
         buff[length] = '\0';
         debug("msg: %s\n", buff);
         send(token->connection, buff, length, 0);
         if (strcmp(buff, "exit") == 0) break;
+        debug("--5\n");
     }
 
     //the timethread will free the memory which will never use
@@ -138,6 +146,7 @@ void *heartbeatThread(void *arg)
     //free(token);
     //token = NULL;
 
+    debug("--6\n");
     debug("tcpThread exit\n");
     pthread_exit(NULL);
     return NULL;
@@ -149,19 +158,26 @@ void *timerThread(void *arg)
     struct sock_time *sock_connection_time = (struct sock_time *)arg;
     time_t now;
     double diff;
+    debug("++1\n");
     do {
-        sleep(5);
+        sleep(3);
         now = time(0);
+        debug("++2\n");
         pthread_mutex_lock(sock_connection_time->token->time_lock);
         diff = difftime(now, *(sock_connection_time->token->last_time));
         pthread_mutex_unlock(sock_connection_time->token->time_lock);
-    } while(diff <= 5.0);
+        debug("++3\n");
+    } while(diff <= 7.0);
 
+    debug("++4\n");
     int kill_rc = pthread_kill(*(sock_connection_time->heartbeat), 0);
+    debug("++4.1\n");
     if (kill_rc == 0) { // still alive
+        debug("++5\n");
         if (!pthread_cancel(*(sock_connection_time->heartbeat))) debug("cancel the heartbeat thread\n");
         else debug("cancel heartbeat thread failed\n");
     }
+    debug("++6\n");
 
     //free the memory
     close(sock_connection_time->token->connection);
@@ -177,6 +193,7 @@ void *timerThread(void *arg)
     sock_connection_time->token = NULL;
     sock_connection_time->heartbeat = NULL;
 
+    debug("++6\n");
     debug("timeThread ended\n");
     pthread_exit(NULL);
 }

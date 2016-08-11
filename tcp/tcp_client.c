@@ -32,8 +32,8 @@ int main()
      * tcp connect, login
      */
     strcpy(sendbuf, "login: light");
-    int i = 10;
-    while (i--) {
+    int i = 1;
+    while (i < 7) {
         send(sock_cli, sendbuf, strlen(sendbuf), 0);
         recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
 
@@ -41,7 +41,7 @@ int main()
         printf("%d, msg: %s\n", i, recvbuf);
         //memset(sendbuf, 0, sizeof(sendbuf));
         memset(recvbuf, 0, sizeof(recvbuf));
-        sleep(9);
+        sleep(i++);
     }
     strcpy(sendbuf, "exit");
     send(sock_cli, sendbuf, strlen(sendbuf), 0);
