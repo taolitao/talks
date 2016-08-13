@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
 
 
     while (1) {
-        client = malloc(sizeof(struct sockaddr_in));
-        m_log("client", sizeof(struct sockaddr_in), log_fs, 1);
+        client = Malloc(client, log_fs);
+        //m_log("client", sizeof(struct sockaddr_in), log_fs, 1);
 
         int connection = accept(sock_descriptor, (struct sockaddr*)client, &len);
         if (connection < 0) {
