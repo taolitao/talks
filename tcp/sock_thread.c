@@ -1,3 +1,4 @@
+#include <Python.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <error.h>
@@ -14,9 +15,10 @@
 
 #define debug(format, args...) fprintf(stderr, format, ##args)
 
-void getInfoAndCreateThread(int connection, struct sockaddr_in *client, FILE *log_fs)
+void getInfoAndCreateThread(int connection, struct sockaddr_in *client, struct sys_conf *conf)
 {
     debug("====getInfoAndCreateThread\n");
+    FILE *log_fs = conf->log_fs;
     //get info
     char buff[1024];
     int length;

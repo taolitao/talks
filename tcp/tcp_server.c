@@ -1,9 +1,9 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <sys/time.h>
 #include <arpa/inet.h>
-#include <unistd.h>
 #include <error.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -15,14 +15,42 @@
 #define debug(format, args...) fprintf(stderr, format, ##args)
 
 
-
 int main(int argc, char *argv[])
 {
-    FILE *log_fs;
-    if (argc > 1)
-        log_fs = fopen(argv[1], "w+");
-    else
-        log_fs = fopen("./server.log", "a+");
+    int ch;
+    struct sys_conf conf;
+    conf.user = "root";
+    conf.passwd = "";
+    conf.db = "test";
+    conf.port = 3306; //sql port
+    char *log_file = "server.log";
+    int PORT = 26666; //app port
+
+    opterr = 0;
+    while ((ch = getopt(argc, argv, "u:P:p:d:l:t:")) != -1) {
+        switch (ch) {
+            case 'u':
+                conf.user = optarg;
+                break;
+            case 'p':
+                conf.passwd = optarg;
+                break;
+            case 'd':
+                conf.db = optarg;
+                break;
+            case 'l':
+                log_file = optarg;
+                break;
+            case 't':
+                conf.port = atoi(optarg);
+                break;
+            case 'P':
+                PORT = atoi(optarg);
+            default:
+                break;
+        }
+    }
+    conf.log_fs = fopen(log_file, "a+");
 
     int sock_descriptor;
     extern int errno;
@@ -53,20 +81,21 @@ int main(int argc, char *argv[])
 
 
     while (1) {
-        client = Malloc(client, log_fs);
+        client = Malloc(client, conf.log_fs);
         //m_log("client", sizeof(struct sockaddr_in), log_fs, 1);
 
         int connection = accept(sock_descriptor, (struct sockaddr*)client, &len);
         if (connection < 0) {
             perror("accept error\n");
-            m_log("client", sizeof(struct sockaddr_in), log_fs, 0);
-            free(client);
+            //m_log("client", sizeof(struct sockaddr_in), log_fs, 0);
+            //free(client);
+            Free(client, conf.log_fs);
             continue;
         }
-        getInfoAndCreateThread(connection, client, log_fs);
+        getInfoAndCreateThread(connection, client, &conf);
     }
 
-    fclose(log_fs);
+    fclose(conf.log_fs);
     close(sock_descriptor);
     return 0;
 }

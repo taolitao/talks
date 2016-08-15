@@ -1,11 +1,1 @@
-+allocte memory: 16 	Bytes	| client
-+allocte memory: 8 	Bytes	| last_time
-+allocte memory: 40 	Bytes	| time_lock
-+allocte memory: 40 	Bytes	| token
-+allocte memory: 16 	Bytes	| sock_connection_time
-+allocte memory: 16 	Bytes	| client
--free    memory: 16 	Bytes	| sock_connection_time->token->client
--free    memory: 40 	Bytes	| sock_connection_time->token->time_lock
--free    memory: 8 	Bytes	| sock_connection_time->token->last_time
--free    memory: 40 	Bytes	| sock_connection_time->token
--free    memory: 16 	Bytes	| sock_connection_time
++memory: 16 	Bytes	| client

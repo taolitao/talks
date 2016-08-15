@@ -1,9 +1,13 @@
 #ifndef _LEE_SOCK_THREAD_H
 #define _LEE_SOCK_THREAD_H
 
-#ifndef PORT
-#define PORT 26666
-#endif
+struct sys_conf {
+    char *user;
+    char *passwd;
+    char *db;
+    FILE *log_fs;
+    int port;
+};
 
 struct sock_token {
     int connection; //socket file descriptor
@@ -21,7 +25,7 @@ struct sock_time {
     FILE *log_fs;
 };
 
-void getInfoAndCreateThread(int connection, struct sockaddr_in *client, FILE *log_fs); //for every connected client
+void getInfoAndCreateThread(int connection, struct sockaddr_in *client, struct sys_conf *conf); //for every connected client
 
 
 void *heartbeatThread(void *arg); //every connected client, transfer tcp data
