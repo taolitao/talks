@@ -1,4 +1,3 @@
-#include <Python.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <error.h>
@@ -10,6 +9,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <string.h>
+#include "my_types.h"
 #include "sock_thread.h"
 #include "m_log.h"
 
