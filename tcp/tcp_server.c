@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <stdlib.h>
+#include "my_types.h"
 #include "sock_thread.h"
 #include "m_log.h"
 
@@ -19,6 +20,7 @@ int main(int argc, char *argv[])
 {
     int ch;
     struct sys_conf conf;
+    conf.host = "127.0.0.1";
     conf.user = "root";
     conf.passwd = "";
     conf.db = "test";
@@ -27,8 +29,11 @@ int main(int argc, char *argv[])
     int PORT = 26666; //app port
 
     opterr = 0;
-    while ((ch = getopt(argc, argv, "u:P:p:d:l:t:")) != -1) {
+    while ((ch = getopt(argc, argv, "h:u:P:p:d:l:t:")) != -1) {
         switch (ch) {
+            case 'h':
+                conf.host = optarg;
+                break;
             case 'u':
                 conf.user = optarg;
                 break;

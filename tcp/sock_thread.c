@@ -10,10 +10,13 @@
 #include <signal.h>
 #include <string.h>
 #include "my_types.h"
+#include "my_sql.h"
 #include "sock_thread.h"
 #include "m_log.h"
 
+#ifndef _LEE_DEBUG
 #define debug(format, args...) fprintf(stderr, format, ##args)
+#endif
 
 void getInfoAndCreateThread(int connection, struct sockaddr_in *client, struct sys_conf *conf)
 {
@@ -29,6 +32,7 @@ void getInfoAndCreateThread(int connection, struct sockaddr_in *client, struct s
     }
     buff[length] = '\0';
     debug("from %s: %s\n", inet_ntoa(client->sin_addr), buff);
+    userLogin(inet_ntoa(client->sin_addr), buff, conf);
     send(connection, buff, strlen(buff), 0);
 
     //create threads
@@ -46,9 +50,6 @@ void getInfoAndCreateThread(int connection, struct sockaddr_in *client, struct s
     ret = pthread_mutex_init(time_lock, NULL);
     if (ret) {
         debug("pthread_mutex_init failed, error number: %d\n", ret);
-        if (ret == EBUSY) debug("111\n");
-        if (ret == EINVAL) debug("222\n");
-        if (ret == EFAULT) debug("333\n");
         perror(strerror(ret));
         return;
     }

@@ -1,8 +1,19 @@
 #ifndef _LEE_MY_TYPES_H
 #define _LEE_MY_TYPES_H
 
+#include <stdio.h>
+#include <pthread.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
+#ifndef _LEE_DEBUG
+#define _LEE_DEBUG
+#define debug(format, args...) fprintf(stderr, format, ##args)
+#endif
 
 struct sys_conf {
+    char *host;
     char *user;
     char *passwd;
     char *db;

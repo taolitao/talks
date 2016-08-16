@@ -1,21 +1,27 @@
-server: tcp_server.o sock_thread.o m_log.o
+all: server client
+.PHONY: all
+
+server: tcp_server.o sock_thread.o m_log.o my_sql.o
 	-rm server.log
 	touch server.log
-	cc tcp_server.o sock_thread.o m_log.o -o server -lpthread
-
-tcp_server.o: tcp_server.c sock_thread.h m_log.h
-	cc -c tcp_server.c -lpthread
-
-sock_thread.o: sock_thread.c sock_thread.h m_log.h
-	cc -c sock_thread.c -lpthread
-
-m_log.o: m_log.c m_log.h
-	cc -c m_log.c
+	$(CC) $^ -o $@ -lpthread -lpython2.7
 
 client: tcp_client.c
-	cc tcp_client.c -o client
+	$(CC) tcp_client.c -o client
 
 
-.PHONY: clean
+.PHONY: cleanall
 clean:
-	-rm server *.o *.log
+	-rm server *.o *.log client
+
+sources = tcp_server.c sock_thread.c m_log.c my_sql.c
+
+override CFLAGS += -I/usr/include/python2.7
+
+include $(sources:.c=.d)
+
+%.d: %.c
+	set -e; rm -f $@; \
+		$(CC) -MM $(CFLAGS) $< > $@.$$$$; \
+		sed 's,\($*\)\.o[ :]*,\1.o $@ : , g' < $@.$$$$ > $@; \
+		rm -f $@.$$$$

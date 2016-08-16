@@ -3,3 +3,6 @@ server
 client
 a.out
 *.log
+*.d
+*.swp
+*.pyc

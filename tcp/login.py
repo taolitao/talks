@@ -10,3 +10,4 @@ def user_login(*info, **sql_conf):
     cur.close()
     conn.commit()
     conn.close()
+    return update_info
