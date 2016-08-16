@@ -35,6 +35,18 @@ int main()
     send(sock_cli, sendbuf, strlen(sendbuf), 0);
     recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
     int i = 0;
+    while (i < 1) {
+        send(sock_cli, sendbuf, strlen(sendbuf), 0);
+        recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
+
+        debug("%d, msg: %s\n", i,  recvbuf);
+        printf("%d, msg: %s\n", i, recvbuf);
+        //memset(sendbuf, 0, sizeof(sendbuf));
+        memset(recvbuf, 0, sizeof(recvbuf));
+        sleep(2);
+        ++i;
+    }
+    i = 2;
     while (i < 15) {
         send(sock_cli, sendbuf, strlen(sendbuf), 0);
         recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
@@ -43,7 +55,8 @@ int main()
         printf("%d, msg: %s\n", i, recvbuf);
         //memset(sendbuf, 0, sizeof(sendbuf));
         memset(recvbuf, 0, sizeof(recvbuf));
-        sleep(i++);
+        sleep(i);
+        i += 3;
     }
     strcpy(sendbuf, "exit");
     send(sock_cli, sendbuf, strlen(sendbuf), 0);

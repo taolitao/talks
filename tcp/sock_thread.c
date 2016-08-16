@@ -38,11 +38,11 @@ void getInfoAndCreateThread(int connection, struct sockaddr_in *client, struct s
     //create threads
     debug("=====create threads\n");
     int ret;
-    time_t *last_time = Malloc(last_time, log_fs);
+    time_t *last_time = Malloc(last_time, log_fs, 1);
     //m_log("last_time", sizeof(time_t), log_fs, 1);
 
     *last_time = time(0);
-    pthread_mutex_t *time_lock = Malloc(time_lock, log_fs);
+    pthread_mutex_t *time_lock = Malloc(time_lock, log_fs, 1);
     //m_log("time_lock", sizeof(pthread_mutex_t), log_fs, 1);
 
     //pthread_mutexattr_t mattr;
@@ -66,12 +66,13 @@ void getInfoAndCreateThread(int connection, struct sockaddr_in *client, struct s
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); //detach thread
 
     //create heartbeat thread
-    struct sock_token *token = Malloc(token, log_fs);
+    struct sock_token *token = Malloc(token, log_fs, 1);
     //m_log("token", sizeof(struct sock_token), log_fs, 1);
     token->connection = connection;
     token->client = client;
     token->last_time = last_time;
     token->time_lock = time_lock;
+    strcpy(token->user, buff);
     if (pthread_create(&heartbeat, &attr, heartbeatThread, (void *)token) != 0) {
         perror("create failed");
         close(token->connection);
@@ -95,15 +96,15 @@ void getInfoAndCreateThread(int connection, struct sockaddr_in *client, struct s
     }
 
     //create timer thread
-    struct sock_time *sock_connection_time;
-    sock_connection_time = Malloc(sock_connection_time, log_fs);
-    //m_log("sock_connection_time", sizeof(struct sock_time), log_fs, 1);
-    //sock_connection_time->last_time = last_time;
-    //sock_connection_time->time_lock = time_lock;
-    sock_connection_time->token = token;
-    sock_connection_time->token->heartbeat = heartbeat;
-    sock_connection_time->log_fs = log_fs;
-    if (pthread_create(&timer, &attr, timerThread, (void *)sock_connection_time) != 0) {
+    struct sock_conn *sock_connection;
+    sock_connection = Malloc(sock_connection, log_fs, 1);
+    //m_log("sock_connection", sizeof(struct sock_conn), log_fs, 1);
+    //sock_connection->last_time = last_time;
+    //sock_connection->time_lock = time_lock;
+    sock_connection->token = token;
+    sock_connection->token->heartbeat = heartbeat;
+    sock_connection->conf = conf;
+    if (pthread_create(&timer, &attr, timerThread, (void *)sock_connection) != 0) {
         int ret = pthread_cancel(timer);
         perror("create failed");
         close(token->connection);
@@ -143,39 +144,39 @@ void *heartbeatThread(void *arg)
     strcpy(sendbuff, "fresh");
     int length;
 
-    debug("--1\n");
+    //debug("--1\n");
 
     int i = 0;
     while (1) {
-        debug("--1.1\n");
+        //debug("--1.1\n");
         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
         pthread_testcancel();
         send(token->connection, sendbuff, strlen(sendbuff), 0);
-        debug("--1.2\n");
+        //debug("--1.2\n");
 
         length = recv(token->connection, buff, sizeof(buff), 0);
         //pthread_testcancel();
         //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-        debug("--2\n");
+        //debug("--2\n");
         debug("length is %d\n", length);
         if (length == -1) {
             debug("recv failed\n");
             break;
         }
-        debug("--3\n");
+        //debug("--3\n");
         pthread_mutex_lock(token->time_lock);
         *(token->last_time) = time(0);
         pthread_mutex_unlock(token->time_lock);
         debug("==info %d\n", i++);
         //if (strcmp(buff, "exit\n") == 0) break;
         if (length == 0) debug("empty\n");
-        debug("--4\n");
+        //debug("--4\n");
         debug("from: %s\n", inet_ntoa(token->client->sin_addr));
         buff[length] = '\0';
         debug("msg: %s\n", buff);
         send(token->connection, buff, length, 0);
         if (strcmp(buff, "exit") == 0) break;
-        debug("--5\n");
+        //debug("--5\n");
     }
 
     //free(token->heartbeat);
@@ -187,7 +188,7 @@ void *heartbeatThread(void *arg)
     //free(token);
     //token = NULL;
 
-    debug("--6\n");
+    //debug("--6\n");
     debug("tcpThread exit\n");
     pthread_exit(NULL);
     return NULL;
@@ -196,60 +197,65 @@ void *heartbeatThread(void *arg)
 void *timerThread(void *arg)
 {
     debug("timeThread\n");
-    struct sock_time *sock_connection_time = (struct sock_time *)arg;
-    FILE *log_fs = sock_connection_time->log_fs;
+    struct sock_conn *sock_connection = (struct sock_conn *)arg;
+    FILE *log_fs = sock_connection->conf->log_fs;
     time_t now;
     double diff;
-    debug("++1\n");
+    //debug("++1\n");
     do {
         sleep(1);
         now = time(0);
-        debug("++2\n");
-        pthread_mutex_lock(sock_connection_time->token->time_lock);
-        diff = difftime(now, *(sock_connection_time->token->last_time));
-        pthread_mutex_unlock(sock_connection_time->token->time_lock);
-        debug("++3\n");
+        //debug("++2\n");
+        pthread_mutex_lock(sock_connection->token->time_lock);
+        diff = difftime(now, *(sock_connection->token->last_time));
+        pthread_mutex_unlock(sock_connection->token->time_lock);
+        //debug("++3\n");
     } while(diff < 5.0);
 
-    debug("++4\n");
-    if (sock_connection_time->token->heartbeat) { // still alive
-        debug("++5\n");
-        if (!pthread_cancel(sock_connection_time->token->heartbeat)) debug("cancel the heartbeat thread\n");
+    //logout
+    debug("********************logout\n");
+    debug("user is:%s;\n", sock_connection->token->user);
+    userLogout(sock_connection->token->user, sock_connection->conf);
+
+    //debug("++4\n");
+    if (sock_connection->token->heartbeat) { // still alive
+        //debug("++5\n");
+        if (!pthread_cancel(sock_connection->token->heartbeat)) debug("cancel the heartbeat thread\n");
         else debug("cancel heartbeat thread failed\n");
-        //free(sock_connection_time->token->heartbeat);
-        sock_connection_time->token->heartbeat = 0;
+        //free(sock_connection->token->heartbeat);
+        sock_connection->token->heartbeat = 0;
     }
-    debug("++6\n");
+    //debug("++6\n");
 
     //free the memory
-    close(sock_connection_time->token->connection);
-    pthread_mutex_destroy(sock_connection_time->token->time_lock);
-    debug("++7\n");
+    close(sock_connection->token->connection);
+    pthread_mutex_destroy(sock_connection->token->time_lock);
+    //debug("++7\n");
 
-    //m_log("sock_connection_time->token->client", sizeof(*(sock_connection_time->token->client)), log_fs, 0);
-    debug("++7.1\n");
-    //m_log("sock_connection_time->token->time_lock", sizeof(*(sock_connection_time->token->time_lock)), log_fs, 0);
-    debug("++7.2\n");
-    //m_log("sock_connection_time->token->last_time", sizeof(*(sock_connection_time->token->last_time)), log_fs, 0);
-    debug("++7.3\n");
-    //m_log("sock_connection_time->token", sizeof(*(sock_connection_time->token)), log_fs, 0);
-    debug("++8\n");
-    Free(sock_connection_time->token->client, log_fs);
-    Free(sock_connection_time->token->time_lock, log_fs);
-    Free(sock_connection_time->token->last_time, log_fs);
-    Free(sock_connection_time->token, log_fs);
+    //m_log("sock_connection->token->client", sizeof(*(sock_connection->token->client)), log_fs, 0);
+    //debug("++7.1\n");
+    //m_log("sock_connection->token->time_lock", sizeof(*(sock_connection->token->time_lock)), log_fs, 0);
+    //debug("++7.2\n");
+    //m_log("sock_connection->token->last_time", sizeof(*(sock_connection->token->last_time)), log_fs, 0);
+    //debug("++7.3\n");
+    //m_log("sock_connection->token", sizeof(*(sock_connection->token)), log_fs, 0);
+    //debug("++8\n");
+    Free(sock_connection->token->client, log_fs);
+    Free(sock_connection->token->time_lock, log_fs);
+    Free(sock_connection->token->last_time, log_fs);
+    Free(sock_connection->token, log_fs);
 
-    debug("++9\n");
-    sock_connection_time->token->client = NULL;
-    sock_connection_time->token->time_lock = NULL;
-    sock_connection_time->token->last_time = NULL;
-    sock_connection_time->token = NULL;
+    //debug("++9\n");
+    sock_connection->token->client = NULL;
+    sock_connection->token->time_lock = NULL;
+    sock_connection->token->last_time = NULL;
+    sock_connection->token = NULL;
 
-    //m_log("sock_connection_time", sizeof(*(sock_connection_time)), log_fs, 0);
-    Free(sock_connection_time, log_fs);
-    sock_connection_time = NULL;
+    //m_log("sock_connection", sizeof(*(sock_connection)), log_fs, 0);
+    Free(sock_connection, log_fs);
+    sock_connection = NULL;
 
-    debug("++10\n");
+    //debug("++10\n");
     debug("timeThread ended\n");
     pthread_exit(NULL);
 }

@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 
 
     while (1) {
-        client = Malloc(client, conf.log_fs);
+        client = Malloc(client, conf.log_fs, 1);
         //m_log("client", sizeof(struct sockaddr_in), log_fs, 1);
 
         int connection = accept(sock_descriptor, (struct sockaddr*)client, &len);

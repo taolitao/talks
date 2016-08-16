@@ -11,8 +11,8 @@ client: tcp_client.c
 
 
 .PHONY: cleanall
-clean:
-	-rm server *.o *.log client
+cleanall:
+	-rm server *.o *.log client *.d
 
 sources = tcp_server.c sock_thread.c m_log.c my_sql.c
 

@@ -22,6 +22,7 @@ struct sys_conf {
 };
 
 struct sock_token {
+    char user[12];
     int connection; //socket file descriptor
     struct sockaddr_in *client; //current connected client
     time_t *last_time; //last connect time
@@ -29,12 +30,9 @@ struct sock_token {
     pthread_t heartbeat;
 };
 
-struct sock_time {
-    //pthread_mutex_t *time_lock; //lock
-    //time_t *last_time; //last connect time
-    //pthread_t *heartbeat;
+struct sock_conn {
     struct sock_token *token; //sock_token info
-    FILE *log_fs;
+    struct sys_conf *conf;
 };
 
 #endif
