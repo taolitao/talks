@@ -26,6 +26,7 @@ void userLogin(char *addr, char *user, struct sys_conf *conf)
 
 void userLogout(char *user, struct sys_conf *conf)
 {
+    debug("///////////user is: %s;\n", user);
     Py_Initialize();
     PyObject *info, *sql_conf;
     PyObject *p_module, *p_func;
@@ -33,7 +34,7 @@ void userLogout(char *user, struct sys_conf *conf)
     p_module = PyImport_Import(PyString_FromString("logout"));
     p_func = PyObject_GetAttrString(p_module, "user_logout");
 
-    info = PyString_FromString(user);
+    info = Py_BuildValue("(s)", user);
     sql_conf = Py_BuildValue("{s:s,s:i,s:s,s:s,s:s}",
             "host", conf->host, "port", conf->port,
             "user", conf->user, "passwd", conf->passwd,

@@ -214,7 +214,7 @@ void *timerThread(void *arg)
 
     //logout
     debug("********************logout\n");
-    debug("user is:%s;\n", sock_connection->token->user);
+    //debug("user is:%s;\n", sock_connection->token->user);
     userLogout(sock_connection->token->user, sock_connection->conf);
 
     //debug("++4\n");

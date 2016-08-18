@@ -1,11 +1,10 @@
 import MySQLdb
 
 def user_logout(*user, **sql_conf):
-    print 'hello'
     conn = MySQLdb.connect(**sql_conf)
     cur = conn.cursor()
     update_info = "update user set ip='0.0.0.0' where userid='%s'" % user
-    print '////////////////update_info is', update_info
+    #print '////////////////update_info is', update_info
     res = cur.execute(update_info)
     if not res:
         print 'error logout'
