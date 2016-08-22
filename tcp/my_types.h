@@ -14,7 +14,7 @@
 
 struct sys_conf {
     char *host;
-    char *user;
+    char *user; //Mysql user
     char *passwd;
     char *db;
     FILE *log_fs;
@@ -22,17 +22,19 @@ struct sys_conf {
 };
 
 struct sock_token {
-    char user[12];
+    char user[12]; //client user
     int connection; //socket file descriptor
     struct sockaddr_in *client; //current connected client
     time_t *last_time; //last connect time
     pthread_mutex_t *time_lock; //lock
     pthread_t heartbeat;
-};
-
-struct sock_conn {
-    struct sock_token *token; //sock_token info
     struct sys_conf *conf;
 };
+
+/*
+struct sock_conn {
+    struct sock_token *token; //sock_token info
+};
+*/
 
 #endif

@@ -11,4 +11,3 @@ def user_logout(*user, **sql_conf):
     cur.close()
     conn.commit()
     conn.close()
-    return update_info

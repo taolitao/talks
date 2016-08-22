@@ -37,9 +37,9 @@ int main()
     send(sock_cli, sendbuf, strlen(sendbuf), 0);
     recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
     int i = 0;
-    while (i < 4) {
+    while (i < 8) {
         send(sock_cli, sendbuf, strlen(sendbuf), 0);
-        recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
+        //recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
 
         debug("%d, msg: %s\n", i,  recvbuf);
         //printf("%d, msg: %s\n", i, recvbuf);
@@ -49,19 +49,15 @@ int main()
         ++i;
     }
     i = 2;
-    sprintf(sendbuf, "%c:%s", USER_LEFT, "light");
-    while (i < 8) {
-        send(sock_cli, sendbuf, strlen(sendbuf), 0);
-        recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
+    sprintf(sendbuf, "%c:%s", USER_REQUEST, "light");
+    send(sock_cli, sendbuf, strlen(sendbuf), 0);
+    recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
 
-        debug("%d, msg: %s\n", i,  recvbuf);
-        printf("%d, msg: %s\n", i, recvbuf);
-        //memset(sendbuf, 0, sizeof(sendbuf));
-        memset(recvbuf, 0, sizeof(recvbuf));
-        sleep(i);
-        ++i;
-    }
-    strcpy(sendbuf, "exit");
+    debug("%d, msg: %s\n", i,  recvbuf);
+    memset(recvbuf, 0, sizeof(recvbuf));
+    sleep(3);
+
+    sprintf(sendbuf, "%c:%s", USER_LEFT, "light");
     send(sock_cli, sendbuf, strlen(sendbuf), 0);
     recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
     debug("%d, msg: %s\n", i,  recvbuf);
