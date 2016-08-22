@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include "my_protocal.h"
 
 #define debug(format, args...) fprintf(stderr, format, ##args)
 #define PORT 26666
@@ -31,23 +32,25 @@ int main()
     /*
      * tcp connect, login
      */
-    strcpy(sendbuf, "light");
+    sprintf(sendbuf, "%c:%s", USER_ENTER, "light");
+    //strcpy(sendbuf, "i:light");
     send(sock_cli, sendbuf, strlen(sendbuf), 0);
     recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
     int i = 0;
-    while (i < 1) {
+    while (i < 4) {
         send(sock_cli, sendbuf, strlen(sendbuf), 0);
         recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
 
         debug("%d, msg: %s\n", i,  recvbuf);
-        printf("%d, msg: %s\n", i, recvbuf);
+        //printf("%d, msg: %s\n", i, recvbuf);
         //memset(sendbuf, 0, sizeof(sendbuf));
         memset(recvbuf, 0, sizeof(recvbuf));
         sleep(2);
         ++i;
     }
     i = 2;
-    while (i < 15) {
+    sprintf(sendbuf, "%c:%s", USER_LEFT, "light");
+    while (i < 8) {
         send(sock_cli, sendbuf, strlen(sendbuf), 0);
         recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
 
@@ -56,7 +59,7 @@ int main()
         //memset(sendbuf, 0, sizeof(sendbuf));
         memset(recvbuf, 0, sizeof(recvbuf));
         sleep(i);
-        i += 3;
+        ++i;
     }
     strcpy(sendbuf, "exit");
     send(sock_cli, sendbuf, strlen(sendbuf), 0);

@@ -26,7 +26,7 @@ void userLogin(char *addr, char *user, struct sys_conf *conf)
 
 void userLogout(char *user, struct sys_conf *conf)
 {
-    debug("///////////user is: %s;\n", user);
+    //debug("///////////user is: %s;\n", user);
     Py_Initialize();
     PyObject *info, *sql_conf;
     PyObject *p_module, *p_func;

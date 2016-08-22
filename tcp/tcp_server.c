@@ -18,6 +18,7 @@
 
 int main(int argc, char *argv[])
 {
+    //extern int EXPIRATION;
     int ch;
     struct sys_conf conf;
     conf.host = "127.0.0.1";
@@ -29,7 +30,7 @@ int main(int argc, char *argv[])
     int PORT = 26666; //app port
 
     opterr = 0;
-    while ((ch = getopt(argc, argv, "h:u:P:p:d:l:t:")) != -1) {
+    while ((ch = getopt(argc, argv, "h:u:w:p:d:l:t:e:")) != -1) {
         switch (ch) {
             case 'h':
                 conf.host = optarg;
@@ -37,7 +38,7 @@ int main(int argc, char *argv[])
             case 'u':
                 conf.user = optarg;
                 break;
-            case 'p':
+            case 'w':
                 conf.passwd = optarg;
                 break;
             case 'd':
@@ -49,8 +50,10 @@ int main(int argc, char *argv[])
             case 't':
                 conf.port = atoi(optarg);
                 break;
-            case 'P':
+            case 'p':
                 PORT = atoi(optarg);
+            //case 'e':
+                //EXPIRATION = atoi(optarg);
             default:
                 break;
         }
