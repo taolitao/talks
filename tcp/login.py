@@ -3,7 +3,7 @@ import MySQLdb
 def user_login(*info, **sql_conf):
     conn = MySQLdb.connect(**sql_conf)
     cur = conn.cursor()
-    update_info = "update user set ip = '%s' where userid = '%s'" % info
+    update_info = "update user set ip = '%s', port=%d where userid = '%s'" % info
     #print '////////////////update_info is', update_info
     res = cur.execute(update_info)
     if not res:

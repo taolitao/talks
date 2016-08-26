@@ -33,7 +33,7 @@ void getInfoAndCreateThread(int connection, struct sockaddr_in *client, struct s
         return;
     }
     buff[length] = '\0';
-    debug("from %s: %s\n", inet_ntoa(client->sin_addr), buff);
+    debug("from %s:%d %s\n", inet_ntoa(client->sin_addr), ntohs(client->sin_port), buff);
     char type;
     char *msg = getInfo(buff, &type);
     if (type != USER_ENTER) {
@@ -45,7 +45,7 @@ void getInfoAndCreateThread(int connection, struct sockaddr_in *client, struct s
     } else {
         char *reply = "****************login";
         send(connection, reply, strlen(reply), 0);
-        userLogin(inet_ntoa(client->sin_addr), msg, conf);
+        userLogin(inet_ntoa(client->sin_addr), ntohs(client->sin_port), msg, conf);
     }
 
     //create threads
@@ -165,25 +165,25 @@ void *heartbeatThread(void *arg)
         debug("==info %d\n", i++);
         //if (strcmp(buff, "exit\n") == 0) break;
         //debug("--4\n");
-        debug("from: %s\n", inet_ntoa(token->client->sin_addr));
+        debug("from: %s:%d\n", inet_ntoa(token->client->sin_addr), ntohs(token->client->sin_port));
         buff[length] = '\0';
         if (strlen(buff) == 0) continue;
         //debug("msg: %s\n", buff);
         char type;
         char *msg = getInfo(buff, &type);
         if (type == USER_LEFT)
-            goto end;
+            break;
         else if (type == USER_REQUEST) {
-            char ip[100];
-            getIp(ip, msg, token->conf);
-            send(token->connection, ip, strlen(ip), 0);
+            char info[100];
+            getIpAndPort(info, msg, token->conf);
+            send(token->connection, info, strlen(info), 0);
         }
         //send(token->connection, buff, length, 0);
         //if (strcmp(buff, "exit") == 0) break;
         //debug("--5\n");
     }
 
-end:
+//end:
     //free(token->heartbeat);
     token->heartbeat = 0;
     //the timethread will free the memory which will never use

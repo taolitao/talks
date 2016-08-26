@@ -7,6 +7,7 @@
 #include <error.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+//#include <netdb.h>
 #include <string.h>
 #include <stdlib.h>
 #include "my_types.h"
@@ -52,8 +53,7 @@ int main(int argc, char *argv[])
                 break;
             case 'p':
                 PORT = atoi(optarg);
-            //case 'e':
-                //EXPIRATION = atoi(optarg);
+                break;
             default:
                 break;
         }
@@ -73,6 +73,19 @@ int main(int argc, char *argv[])
     server.sin_family = AF_INET;
     server.sin_port = htons(PORT);
     server.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    /*
+    struct addrinfo hints;
+    struct addrinfo *result, *rp;
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+    hints.ai_protocol = 0;
+    hints.ai_canonname = NULL;
+    hints.ai_addr = NULL;
+    hints.ai_next = NULL;
+    */
 
     if (bind(sock_descriptor, (struct sockaddr*)&server, sizeof(server)) == -1) {
         perror("bind");

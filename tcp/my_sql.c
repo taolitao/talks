@@ -2,7 +2,7 @@
 #include "my_types.h"
 #include "my_sql.h"
 
-void userLogin(char *addr, char *user, struct sys_conf *conf)
+void userLogin(char *ip, unsigned short port, char *user, struct sys_conf *conf)
 {
     Py_Initialize();
 
@@ -13,7 +13,7 @@ void userLogin(char *addr, char *user, struct sys_conf *conf)
     p_module = PyImport_Import(PyString_FromString("login"));
     p_func = PyObject_GetAttrString(p_module, "user_login");
 
-    info = Py_BuildValue("(ss)", addr, user);
+    info = Py_BuildValue("(sHs)", ip, port, user);
     sql_conf = Py_BuildValue("{s:s,s:i,s:s,s:s,s:s}",
             "host", conf->host, "port", conf->port,
             "user", conf->user, "passwd", conf->passwd,
@@ -47,14 +47,14 @@ void userLogout(char *user, struct sys_conf *conf)
     Py_Finalize();
 }
 
-void getIp(char *ip, char *user, struct sys_conf *conf)
+void getIpAndPort(char *res_info, char *user, struct sys_conf *conf)
 {
     Py_Initialize();
     PyObject *info, *sql_conf;
     PyObject *p_module, *p_func;
     PyObject *res;
     p_module = PyImport_Import(PyString_FromString("gets"));
-    p_func = PyObject_GetAttrString(p_module, "get_ip");
+    p_func = PyObject_GetAttrString(p_module, "get_ip_port");
 
     info = Py_BuildValue("(s)", user);
     sql_conf = Py_BuildValue("{s:s,s:i,s:s,s:s,s:s}",
@@ -62,8 +62,8 @@ void getIp(char *ip, char *user, struct sys_conf *conf)
             "user", conf->user, "passwd", conf->passwd,
             "db", conf->db);
     res = PyObject_Call(p_func, info, sql_conf);
-    strcpy(ip, PyString_AsString(res));
-    debug("get ip:%s;\n", ip);
+    strcpy(res_info, PyString_AsString(res));
+    debug("get :%s;\n", res_info);
 
     Py_Finalize();
 }
