@@ -1,4 +1,6 @@
 *.o
 server
 client
-a.out
+*.out
+*.d
+.gitignore

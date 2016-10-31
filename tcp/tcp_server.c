@@ -1,31 +1,50 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <sys/time.h>
 #include <arpa/inet.h>
-#include <unistd.h>
 #include <error.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <stdlib.h>
+#include <semaphore.h>
+#include "my_types.h"
 #include "sock_thread.h"
 #include "m_log.h"
 
-#define debug(format, args...) fprintf(stderr, format, ##args)
-
-
+FILE *LogFp;
+sem_t GroupSize;
 
 int main(int argc, char *argv[])
 {
-    FILE *log_fs;
-    if (argc > 1)
-        log_fs = fopen(argv[1], "w+");
-    else
-        log_fs = fopen("./server.log", "a+");
+    int ch;
+    char *log_file = "server.log";
+    int port = 26666; //server port
+    int size = 2;
+
+    opterr = 0;
+    while ((ch = getopt(argc, argv, "p:l:s:")) != -1) {
+        switch (ch) {
+            case 'l':
+                log_file = optarg;
+                break;
+            case 's':
+                size = atoi(optarg);
+                break;
+            case 'p':
+                port = atoi(optarg);
+                break;
+            default:
+                break;
+        }
+    }
+    LogFp = fopen(log_file, "a+");
+    sem_init(&GroupSize, 0, size);
 
     int sock_descriptor;
-    extern int errno;
+    //extern int errno;
     sock_descriptor = socket(AF_INET, SOCK_STREAM, 0);
 
     int on, ret;
@@ -35,38 +54,34 @@ int main(int argc, char *argv[])
     struct sockaddr_in server;
     memset(&server, 0, sizeof(server));
     server.sin_family = AF_INET;
-    server.sin_port = htons(PORT);
+    server.sin_port = htons(port);
     server.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if (bind(sock_descriptor, (struct sockaddr*)&server, sizeof(server)) == -1) {
-        perror("bind");
+        perror("bind failed");
         exit(1);
     }
     if (listen(sock_descriptor, 20) == -1) {
-        perror("listen");
+        perror("listen failed");
         exit(1);
     }
 
-    //char buff[1024];
     struct sockaddr_in *client;
     socklen_t len = sizeof(*client);
 
-
     while (1) {
-        client = malloc(sizeof(struct sockaddr_in));
-        m_log("client", sizeof(struct sockaddr_in), log_fs, 1);
+        Malloc(client, 1);
 
         int connection = accept(sock_descriptor, (struct sockaddr*)client, &len);
         if (connection < 0) {
             perror("accept error\n");
-            m_log("client", sizeof(struct sockaddr_in), log_fs, 0);
-            free(client);
+            Free(client);
             continue;
         }
-        getInfoAndCreateThread(connection, client, log_fs);
+        thread_dispatcher(connection, client);
     }
 
-    fclose(log_fs);
+    fclose(LogFp);
     close(sock_descriptor);
     return 0;
 }
