@@ -13,7 +13,7 @@
 #include "my_types.h"
 #include "sock_thread.h"
 #include "m_log.h"
-extern sem_t *GroupSize;
+extern sem_t GroupSize;
 
 static struct msg_list *Msg = NULL;
 static pthread_mutex_t MsgMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -86,7 +86,7 @@ static void *gc_thread(void *arg)
     Free(token->last_time);
     Free(token->done);
     Free(token);
-    sem_post(GroupSize);
+    sem_post(&GroupSize);
 }
 
 void thread_dispatcher(int connection, struct sockaddr_in *client)
@@ -100,7 +100,7 @@ void thread_dispatcher(int connection, struct sockaddr_in *client)
         debug("recv info failed\n");
         return;
     }
-    sem_wait(GroupSize);
+    sem_wait(&GroupSize);
     const char *answer = "passed";
     send(connection, answer, strlen(answer), 0);
     name[length] = '\0';

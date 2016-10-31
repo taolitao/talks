@@ -15,7 +15,7 @@
 #include "m_log.h"
 
 FILE *LogFp;
-sem_t *GroupSize;
+sem_t GroupSize;
 
 int main(int argc, char *argv[])
 {
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
         }
     }
     LogFp = fopen(log_file, "a+");
-    sem_init(GroupSize, 0, size);
+    sem_init(&GroupSize, 0, size);
 
     int sock_descriptor;
     //extern int errno;

@@ -4,7 +4,7 @@ all: server client
 server: tcp_server.o sock_thread.o m_log.o
 	-rm server.log
 	touch server.log
-	$(CC) $^ -o $@ -lpthread -g
+	$(CC) $^ -o $@ -lpthread
 
 client: tcp_client.c
 	$(CC) tcp_client.c -o client
