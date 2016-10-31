@@ -12,15 +12,6 @@
 #define debug(format, args...) fprintf(stderr, format, ##args)
 #endif
 
-struct sys_conf {
-    char *host;
-    char *user; //Mysql user
-    char *passwd;
-    char *db;
-    FILE *log_fs;
-    int port;
-};
-
 struct sock_token {
     char user[12]; //client user
     int connection; //socket file descriptor
@@ -28,13 +19,7 @@ struct sock_token {
     time_t *last_time; //last connect time
     pthread_mutex_t *time_lock; //lock
     pthread_t heartbeat;
-    struct sys_conf *conf;
+    sem_t *done;
 };
-
-/*
-struct sock_conn {
-    struct sock_token *token; //sock_token info
-};
-*/
 
 #endif

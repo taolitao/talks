@@ -3,19 +3,21 @@
 //#include <pthread.h>
 #include <stdio.h>
 
+typedef enum {ALLOC, FREE} LOG_TYPE;
 
-void m_log(char *msg, int size, FILE *fs, int mode);
+void m_log(char *msg, int size, LOG_TYPE mode);
 
-#endif
+#define debug(format, args...) fprintf(stderr, format, ##args)
 
-#ifndef _LEE_MEMORY
-#define _LEE_MEMORY
+#define Malloc(ptr, s) (m_log(#ptr, (s)*sizeof(*(ptr)), ALLOC),\
+    malloc((s)*sizeof(*(ptr))))
 
-
-#define Malloc(ptr, log_fs, s)  malloc((s)*sizeof(*(ptr)));\
-    m_log(#ptr, (s)*sizeof(*(ptr)), log_fs, 1)
-
-#define Free(ptr, log_fs) m_log(#ptr, sizeof(*(ptr)), log_fs, 0);\
-    free(ptr)
+#define Free(ptr) ({\
+        if (ptr != NULL){\
+            m_log(#ptr, sizeof(*(ptr)), FREE);\
+            free(ptr);\
+            ptr = NULL;\
+        }\
+        })
 
 #endif

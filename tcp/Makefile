@@ -1,10 +1,10 @@
 all: server client
 .PHONY: all
 
-server: tcp_server.o sock_thread.o m_log.o my_sql.o
+server: tcp_server.o sock_thread.o m_log.o
 	-rm server.log
 	touch server.log
-	$(CC) $^ -o $@ -lpthread -lpython2.7
+	$(CC) $^ -o $@ -lpthread -g
 
 client: tcp_client.c
 	$(CC) tcp_client.c -o client
@@ -14,9 +14,7 @@ client: tcp_client.c
 cleanall:
 	-rm server *.o *.log client *.d
 
-sources = tcp_server.c sock_thread.c m_log.c my_sql.c
-
-override CFLAGS += -I/usr/include/python2.7
+sources = tcp_server.c sock_thread.c m_log.c
 
 include $(sources:.c=.d)
 

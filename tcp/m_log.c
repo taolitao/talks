@@ -1,16 +1,26 @@
 #include "m_log.h"
 #include <stdio.h>
-//#include <pthread.h>
-#define debug(format, args...) fprintf(stderr, format, ##args)
+#include <pthread.h>
 
-void m_log(char *msg, int size, FILE *fs, int mode)
+static pthread_mutex_t WriteLog = PTHREAD_MUTEX_INITIALIZER;
+extern FILE *LogFp;
+
+void m_log(char *msg, int size, LOG_TYPE mode)
 {
-    //FILE *fs = fopen("./server.log", "aw");
-    if (mode) //allocte log
-        fprintf(fs, "+m:%d \tBytes\t| %s\n", size, msg);
+    if (LogFp == NULL) return;
+    if (mode == ALLOC) //allocte log
+    {
+        pthread_mutex_lock(&WriteLog);
+        fprintf(LogFp, "+m:%d \tBytes\t| %s\n", size, msg);
+        pthread_mutex_unlock(&WriteLog);
+    }
     else //free log
-        fprintf(fs, "-m:%d \tBytes\t| %s\n", size, msg);
-    int ret = fflush(fs);
+    {
+        pthread_mutex_lock(&WriteLog);
+        fprintf(LogFp, "-m:%d \tBytes\t| %s\n", size, msg);
+        pthread_mutex_unlock(&WriteLog);
+    }
+    int ret = fflush(LogFp);
     if (ret)
         debug("fflush failed\n");
 }

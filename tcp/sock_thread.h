@@ -1,15 +1,17 @@
 #ifndef _LEE_SOCK_THREAD_H
 #define _LEE_SOCK_THREAD_H
 
+struct msg_list {
+    struct sock_token *token;
+    struct msg_list *next;
+};
 
-//int EXPIRATION = 5;
+void thread_dispatcher(int connection, struct sockaddr_in *client); //for every connected client
 
-void getInfoAndCreateThread(int connection, struct sockaddr_in *client, struct sys_conf *conf); //for every connected client
+void *heartbeat_thread(void *arg); //every connected client, transfer tcp data
 
-void *heartbeatThread(void *arg); //every connected client, transfer tcp data
+void *timer_thread(void *arg); //test if tcp is unconnected, and if so, free it
 
-void *timerThread(void *arg); //test if tcp is unconnected, and if so, free it
-
-char *getInfo(char *buff, char *type);
+void *gc(void *arg); //release the abandoned resource
 
 #endif
