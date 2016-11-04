@@ -14,7 +14,6 @@
 #include "m_log.h"
 #include "my_types.h"
 
-#define debug(format, args...) fprintf(stderr, format, ##args)
 extern sem_t GroupSize;
 void *gc_thread(void *arg)
 {
@@ -26,19 +25,20 @@ void *gc_thread(void *arg)
     Free(token->last_time);
     Free(token);
 }
-void thread_dispatcher(int connection, struct sockaddr_in *client)
+void *thread_dispatcher(void *arg)
 {
     debug("====thread_dispatcher\n");
+    struct connection_info *conn_info = (struct connection_info*)arg;
     //get info
     char buff[1024];
     int length;
-    length = recv(connection, buff, sizeof(buff), 0);
+    length = recv(conn_info->connection, buff, sizeof(buff), 0);
     if (length == -1) {
         debug("recv info failed\n");
-        return;
+        return NULL;
     }
     buff[length] = '\0';
-    debug("from %s: %s\n", inet_ntoa(client->sin_addr), buff);
+    debug("from %s: %s\n", inet_ntoa(conn_info->client->sin_addr), buff);
     debug("%s: waiting...\n", buff);
     sem_wait(&GroupSize);
     debug("%s: continue...\n", buff);
@@ -57,32 +57,30 @@ void thread_dispatcher(int connection, struct sockaddr_in *client)
     if (ret) {
         debug("pthread_mutex_init failed, error number: %d\n", ret);
         perror(strerror(ret));
-        return;
+        return NULL;
     }
 
     pthread_attr_t attr;
     pthread_t heartbeat;
     pthread_t timer;
     pthread_t gc;
-    //heartbeat = malloc(sizeof(pthread_t));
     memset(&heartbeat, 0, sizeof(heartbeat));
     memset(&timer, 0, sizeof(timer));
 
     pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); //detach thread
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); //detached thread
 
-    //create heartbeat thread
     struct sock_token *token;
     Malloc(token, 1);
-    token->connection = connection;
-    token->client = client;
+    token->connection = conn_info->connection;
+    token->client = conn_info->client;
     token->last_time = last_time;
     token->time_lock = time_lock;
     strcpy(token->user, buff);
 
     sem_init(&token->done, 0, 0);
     strcpy(buff, "starting...\n");
-    send(connection, buff, strlen(buff), 0);
+    send(conn_info->connection, buff, strlen(buff), 0);
     do {
         if (pthread_create(&heartbeat, &attr, heartbeat_thread, (void *)token) != 0) {
             perror("create heartbeat failed");
@@ -101,18 +99,20 @@ void thread_dispatcher(int connection, struct sockaddr_in *client)
         }
         pthread_attr_destroy(&attr);
         debug("thread_dispatcher ended\n");
-        return;
+        Free(conn_info);
+        pthread_exit(NULL);
+        //return NULL;
     } while (0);
 
     //error occured
     pthread_attr_destroy(&attr);
     sem_close(&(token->done));
 
+    close(token->connection);
     Free(token->last_time);
     Free(token->time_lock);
     Free(token->client);
-    close(token->connection);
-    Free(client);
+    Free(conn_info);
     Free(token);
 
     debug("thread_dispatcher ended\n");
@@ -125,7 +125,7 @@ void *heartbeat_thread(void *arg)
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
     struct sock_token *token = (struct sock_token *)arg;
-    char buff[1024];
+    char recvbuff[1024];
     char sendbuff[1024];
     strcpy(sendbuff, "got message\n");
     int length;
@@ -134,22 +134,22 @@ void *heartbeat_thread(void *arg)
     while (1) {
         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
         pthread_testcancel();
-        length = recv(token->connection, buff, sizeof(buff), 0);
+        length = recv(token->connection, recvbuff, sizeof(recvbuff), 0);
         pthread_testcancel();
         pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
         if (length == -1) {
             debug("recv failed\n");
             break;
         }
-        buff[length] = '\0';
+        recvbuff[length] = '\0';
         pthread_mutex_lock(token->time_lock);
         *(token->last_time) = time(0);
         pthread_mutex_unlock(token->time_lock);
         debug("from: %s:%d, msg:%s\n", inet_ntoa(token->client->sin_addr),
-              ntohs(token->client->sin_port), buff);
+              ntohs(token->client->sin_port), recvbuff);
 
         send(token->connection, sendbuff, strlen(sendbuff), 0);
-        if (strcmp(buff, "exit") == 0) break;
+        if (strcmp(recvbuff, "exit") == 0) break;
     }
 
     token->heartbeat = 0;

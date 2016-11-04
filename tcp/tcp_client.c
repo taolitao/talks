@@ -15,11 +15,15 @@ int main(int argc, char *argv[])
     char ch;
     int port = 26666; //server port
     int times = 4;
-    char *name = "Unkown";
+    char *name = "Anonymous";
+    char *server_addr = "127.0.0.1";
 
     opterr = 0;
-    while ((ch = getopt(argc, argv, "p:t:u:")) != -1) {
+    while ((ch = getopt(argc, argv, "s:p:t:u:")) != -1) {
         switch (ch) {
+            case 's':
+                server_addr = optarg;
+                break;
             case 'p':
                 port = atoi(optarg);
                 break;
@@ -36,38 +40,38 @@ int main(int argc, char *argv[])
     memset(&server, 0, sizeof(server));
     server.sin_family = AF_INET;
     server.sin_port = htons(port);
-    server.sin_addr.s_addr = inet_addr("127.0.0.1");
+    server.sin_addr.s_addr = inet_addr(server_addr);
 
     if (connect(sock_cli, (struct sockaddr*)&server, sizeof(server)) < 0) {
         perror("connect");
         exit(1);
     }
 
-    char sendbuf[BUFFER_SIZE];
-    char recvbuf[BUFFER_SIZE];
-    sprintf(sendbuf, "I'm %s\n", name);
+    char sendbuff[BUFFER_SIZE];
+    char recvbuff[BUFFER_SIZE];
+    sprintf(sendbuff, "I'm %s\n", name);
 
     int length;
     send(sock_cli, name, strlen(name), 0);
-    length = recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
+    length = recv(sock_cli, recvbuff, sizeof(recvbuff) , 0);
     if (length < 0) {
         perror("error");
         exit(1);
     }
-    recvbuf[length] = '\0';
-    debug("------%s\n", recvbuf);
+    recvbuff[length] = '\0';
+    debug("------%s\n", recvbuff);
     int i = 0;
     while (i < times) {
-        send(sock_cli, sendbuf, strlen(sendbuf), 0);
-        length = recv(sock_cli, recvbuf, sizeof(recvbuf) , 0);
-        recvbuf[length] = '\0';
+        send(sock_cli, sendbuff, strlen(sendbuff), 0);
+        length = recv(sock_cli, recvbuff, sizeof(recvbuff) , 0);
+        recvbuff[length] = '\0';
 
-        debug("%d, msg: %s\n", i, recvbuf);
-        memset(recvbuf, 0, sizeof(recvbuf));
+        debug("%d, msg: %s\n", i, recvbuff);
+        memset(recvbuff, 0, sizeof(recvbuff));
         sleep(i++);
     }
-    strcpy(sendbuf, "exit");
-    send(sock_cli, sendbuf, strlen(sendbuf), 0);
+    strcpy(sendbuff, "exit");
+    send(sock_cli, sendbuff, strlen(sendbuff), 0);
 
     close(sock_cli);
     return 0;

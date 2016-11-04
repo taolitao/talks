@@ -69,6 +69,11 @@ int main(int argc, char *argv[])
     struct sockaddr_in *client;
     socklen_t len = sizeof(*client);
 
+    pthread_t td;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); //detached thread
+
     while (1) {
         Malloc(client, 1);
 
@@ -78,7 +83,15 @@ int main(int argc, char *argv[])
             Free(client);
             continue;
         }
-        thread_dispatcher(connection, client);
+        //thread_dispatcher(connection, client);
+        struct connection_info *conn_info;
+        Malloc(conn_info, 1);
+        conn_info->connection = connection;
+        conn_info->client = client;
+        if (pthread_create(&td, &attr, thread_dispatcher, (void *)conn_info) != 0) {
+            perror("create thread_dispatcher failed");
+            continue;
+        }
     }
 
     fclose(LogFp);
