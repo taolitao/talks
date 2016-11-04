@@ -8,10 +8,10 @@
 #include <arpa/inet.h>
 
 struct sock_token {
-    char user[12]; //client user
+    char user[12]; //client user name
     int connection; //socket file descriptor
-    struct sockaddr_in *client; //current connected client
-    time_t *last_time; //last connect time
+    struct sockaddr_in *client; //current connected client address info
+    time_t *last_time; //last communication time
     pthread_mutex_t *time_lock; //lock
     pthread_t heartbeat;
     sem_t done;
