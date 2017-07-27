@@ -1,7 +1,8 @@
-#talks
+# talks
 talks is my own IM system, but I only finished the primary tcp part at present.
-It can only run at the Linux operating system.<br>
-##Build
+It can only run at the Linux operating system.
+
+## Build
 First, you need to clone the project:
 ```shell
 git clone https://github.com/light8lee/talks.git
@@ -20,7 +21,8 @@ You can also do:
 make all
 ```
 to get both server and client at one time.
-##Test
+
+## Test
 To run the server, just type:
 ```shell
 ./server [-p LISTEN_PORT] [-l LOG_FILE_NAME] [-s MAX_SIZE]
@@ -29,7 +31,8 @@ And to run the client:
 ```shell
 ./client [-p SERVER_PORT] [-t RUN_TIMES] [-u USER_NAME]
 ```
-##Example
+
+## Example
 ```shell
 ./server -p 28888 -s 2
 ```
@@ -39,9 +42,10 @@ It means listen at port:28888, allow at most 2 client connecting, and use defaul
 ```
 It means use default server port:26666, client user name is `Tom` and run 5 times.
 <br>
-#talks中文说明
+# talks中文说明
 talk是我自己做的一个IM系统，不过仅仅做到了基本的tcp部分，而且只能运行在Linux操作系统上。
-##Build
+
+## Build
 首先从github上获取该项目，
 ```shell
 git clone https://github.com/light8lee/talks.git
@@ -60,7 +64,8 @@ make client
 make all
 ```
 同时得到server和client。
-##Test
+
+## Test
 启动server，只需要运行：
 ```shell
 ./server [-p LISTEN_PORT] [-l LOG_FILE_NAME] [-s MAX_SIZE]
@@ -69,7 +74,8 @@ make all
 ```shell
 ./client [-p SERVER_PORT] [-t RUN_TIMES] [-u USER_NAME]
 ```
-##Example
+
+## Example
 ```shell
 ./server -p 28888 -s 2
 ```
